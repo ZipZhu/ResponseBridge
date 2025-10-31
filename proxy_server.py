@@ -10,9 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
 
-app = FastAPI(title="SillyTavern OpenAI Proxy -> Responses API")
+app = FastAPI(title="OpenAI-Compatible Proxy -> Responses API")
 
-# CORS for SillyTavern UI (localhost:8000 / 127.0.0.1:8000)
+# Default CORS for local OpenAI-compatible clients
 cors_origins_env = os.getenv("PROXY_CORS_ORIGINS")
 if cors_origins_env:
     origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
@@ -78,7 +78,7 @@ def load_config() -> Dict[str, Any]:
 
     # Hard default if still not present
     if not cfg["base_url"]:
-        cfg["base_url"] = "https://codex.imyaichat.com/openai"
+        cfg["base_url"] = "https://your-upstream.example.com/openai"
     if not cfg["default_model"]:
         cfg["default_model"] = "gpt-5"
 
@@ -164,7 +164,7 @@ def chat_to_responses_payload(body: Dict[str, Any]) -> Tuple[Dict[str, Any], boo
 
     # Do NOT forward OpenAI penalties; upstream rejects them with 400
     # (e.g., {"detail":"Unsupported parameter: frequency_penalty"})
-    # SillyTavern may still send them; we safely ignore here.
+    # Some clients may still send them; we safely ignore here.
 
     return payload, stream, model
 
@@ -669,7 +669,7 @@ async def health():
 @app.get("/")
 async def root():
     return {
-        "message": "SillyTavern OpenAI Proxy is running",
+        "message": "OpenAI-compatible proxy is running",
         "endpoints": ["/v1/models", "/v1/chat/completions", "/health"],
     }
 
